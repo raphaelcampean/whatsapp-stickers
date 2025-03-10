@@ -1,0 +1,23 @@
+<div class="container">
+  <h1>Crie suas figurinhas!</h1>
+
+  <%= form_with url: stickers_path, multipart: true, method: :post, html: { class: "form-group" } do |f| %>
+    <div class="form-group">
+      <%= f.label :image, "Escolha uma imagem:", class: "form-label" %>
+      <%= f.file_field :image, accept: "image/*", class: "form-control" %>
+    </div>
+
+    <div class="form-group mt-3">
+      <%= f.submit "Enviar", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+
+  <% if flash[:image_url] || session[:image] %>
+    <div class="mt-3">
+      <h2>Imagem Processada:</h2>
+      <img src="<%= flash[:image_url] || session[:image] %>" alt="Imagem processada" class="img-thumbnail" style="border: 2px solid black;">
+      <a href="<%= flash[:image_url] || session[:image]%>" download="<%= flash[:image_url] || session[:image] %>" class="btn btn-secondary">Clique aqui para baixar</a>
+      <%= link_to "Enviar para Whatsapp", send_to_whatsapp_stickers_path, class: 'btn btn-success', data: { turbo_method: :post } %>
+    </div>
+  <% end %>
+</div>
