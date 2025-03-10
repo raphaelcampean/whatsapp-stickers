@@ -8,6 +8,11 @@
     </div>
 
     <div class="form-group mt-3">
+      <%= f.label :whatsapp_number, "Número do Whatsapp: (insira o DDD e +55)", class: "form-label" %>
+      <%= f.telephone_field :whatsapp_number, class: "form-control", placeholder: "Digite seu número de Whatsapp" %>
+    </div>
+
+    <div class="form-group mt-3">
       <%= f.submit "Enviar", class: "btn btn-primary" %>
     </div>
   <% end %>

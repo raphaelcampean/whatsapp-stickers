@@ -83,3 +83,7 @@ gem "sassc-rails", "~> 2.1"
 gem "jquery-rails", "~> 4.6"
 
 gem "twilio-ruby", "~> 7.4"
+
+gem "aws-sdk-s3", "~> 1.182"
+
+gem "carrierwave", "~> 3.1"

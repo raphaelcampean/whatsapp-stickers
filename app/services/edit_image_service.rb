@@ -1,47 +1,56 @@
 require 'rmagick'
+require 'aws-sdk-s3'
 
 class EditImageService
+  MINIO_ENDPOINT = "https://141f-2804-14d-5c21-af0c-6c0a-7891-d726-4e8.ngrok-free.app"
+  MINIO_BUCKET = "whatsapp-stickers" # Nome do bucket atualizado
+  MINIO_ACCESS_KEY = "admin"
+  MINIO_SECRET_KEY = "secretpassword"
+
   def initialize(image)
     @image = image
   end
 
   def call
-    # Chama o método de classe para criar a imagem
-    self.class.create_image(@image)
-  end
-
-  # Método de classe para processar a imagem
-  def self.create_image(image)
-    # Lê a imagem e aplica o resize
-    img = Magick::Image.read(image.path).first
-    img = img.resize_to_fill(512, 512)
-
-    # Define o caminho do arquivo de saída
-    output_path = Rails.root.join('public', 'uploads', 'stickers', "processed_#{SecureRandom.hex}.webp")
-
-    # Define o formato da imagem como WebP
-    img.format = "WEBP"
-
-    # Salva a imagem processada
-    img.write(output_path.to_s)
-
-    # Gera e retorna a URL pública da imagem
-    public_url = generate_public_url(output_path)
-
-    # Retorna a URL pública
-    public_url
+    upload_to_minio(process_image)
   end
 
   private
 
-  # Gera a URL pública da imagem
-  def self.generate_public_url(output_path)
-    # Caminho relativo dentro da pasta public
-    relative_path = "/uploads/stickers/#{output_path.basename.to_s}"
+  def process_image
+    img = Magick::Image.read(@image.path).first
+    img = img.resize_to_fill(512, 512)
+    
+    output_path = Rails.root.join('public', 'uploads', 'stickers', "processed_#{SecureRandom.hex}.webp")
 
-    # URL pública completa usando o domínio da aplicação
-    public_url = Rails.application.routes.url_helpers.root_url(host: 'localhost', port: 3000).chomp('/') + relative_path
+    img.format = "WEBP"
 
-    public_url
+    img.write(output_path.to_s)
+
+    output_path
+  end
+
+  def upload_to_minio(file_path)
+    s3_client = Aws::S3::Client.new(
+      endpoint: MINIO_ENDPOINT,
+      access_key_id: MINIO_ACCESS_KEY,
+      secret_access_key: MINIO_SECRET_KEY,
+      force_path_style: true, # Obrigatório para MinIO
+      region: 'us-east-1'
+    )
+
+    file_name = "stickers/#{File.basename(file_path)}"
+
+    # Envia a imagem para o MinIO
+    s3_client.put_object(
+      bucket: MINIO_BUCKET,
+      key: file_name,
+      body: File.open(file_path, 'rb'),
+      acl: 'public-read',
+      content_type: 'image/webp'
+    )
+
+    # Retorna a URL pública da imagem
+    "#{MINIO_ENDPOINT}/#{MINIO_BUCKET}/#{file_name}"
   end
 end
