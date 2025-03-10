@@ -2,11 +2,6 @@ require 'rmagick'
 require 'aws-sdk-s3'
 
 class EditImageService
-  MINIO_ENDPOINT = "https://141f-2804-14d-5c21-af0c-6c0a-7891-d726-4e8.ngrok-free.app"
-  MINIO_BUCKET = "whatsapp-stickers" # Nome do bucket atualizado
-  MINIO_ACCESS_KEY = "admin"
-  MINIO_SECRET_KEY = "secretpassword"
-
   def initialize(image)
     @image = image
   end
@@ -20,7 +15,7 @@ class EditImageService
   def process_image
     img = Magick::Image.read(@image.path).first
     img = img.resize_to_fill(512, 512)
-    
+
     output_path = Rails.root.join('public', 'uploads', 'stickers', "processed_#{SecureRandom.hex}.webp")
 
     img.format = "WEBP"
@@ -32,9 +27,9 @@ class EditImageService
 
   def upload_to_minio(file_path)
     s3_client = Aws::S3::Client.new(
-      endpoint: MINIO_ENDPOINT,
-      access_key_id: MINIO_ACCESS_KEY,
-      secret_access_key: MINIO_SECRET_KEY,
+      endpoint: ENV['MINIO_ENDPOINT'],
+      access_key_id: ENV['MINIO_ACCESS_KEY'],
+      secret_access_key: ENV['MINIO_SECRET_KEY'],
       force_path_style: true, # Obrigatório para MinIO
       region: 'us-east-1'
     )
